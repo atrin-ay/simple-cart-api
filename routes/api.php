@@ -4,18 +4,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 
-Route::view('/', 'shop');
-
 Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/create', function() {
-    return view('create-product');
-});
 Route::post('/products', [ProductController::class, 'store']);
+Route::get('/products/{id}', [ProductController::class, 'show']);
+Route::put('/products/{id}', [ProductController::class, 'update']);
+Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 
-Route::get('/cart', function() {
-    return view('cart');
-});
-Route::get('/cart/api', [CartController::class, 'getCart']);
+Route::get('/cart', [CartController::class, 'getCart']);
 Route::post('/cart/{id}', [CartController::class, 'add']);
 Route::delete('/cart/{id}', [CartController::class, 'remove']);
 

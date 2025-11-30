@@ -2,54 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use Illuminate\Http\Request;
+use App\Services\CartService;
 
 class CartController extends Controller
 {
-    public function index()
+    protected $cartService;
+
+    public function __construct(CartService $cartService)
     {
-        return view('cart');
+        $this->cartService = $cartService;
     }
-    
+
     public function getCart()
     {
-        return response()->json(session('cart', []));
+        return response()->json($this->cartService->getCart());
     }
 
     public function add($id)
     {
-        $product = Product::find($id);
-        if(!$product) {
+        $cart = $this->cartService->addToCart($id);
+        if(!$cart) {
             return response()->json(['error' => 'Product not found'], 404);
         }
-
-        $cart = session('cart', []);
-
-        if($cart[$id] ?? false) {
-            $cart[$id]['quantity'] += 1;
-        } else {
-            $cart[$id] = [
-                'name' => $product->name,
-                'price' => $product->price,
-                'quantity' => 1
-            ];
-        }
-
-        session(['cart' => $cart]);
-
         return response()->json($cart);
     }
 
     public function remove($id)
     {
-        $cart = session('cart', []);
-        if($cart[$id] ?? false) {
-            unset($cart[$id]);
-        }
-
-        session(['cart' => $cart]);
-
+        $cart = $this->cartService->removeFromCart($id);
         return response()->json($cart);
     }
 }
