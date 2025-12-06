@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\ProductService;
+use App\Http\Resources\ProductResource;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 
 class ProductController extends Controller
 {
@@ -14,30 +16,46 @@ class ProductController extends Controller
         $this->productService = $productService;
     }
 
-    public function index(){
-        return $this->productService->getAllProducts();
+    public function index()
+    {
+        $products = $this->productService->getAllProducts();
+        return ProductResource::collection($products);
     }
     
-    public function store(Request $request){
-        $product = $request->validate([
-            'name'=>'required|string|max:255',
-            'description'=>'string',
-            'price'=>'required|numeric',
-            'quantity'=>'required|integer',
-        ]);
-       $this->productService->createProduct($product);
-        return response()->json(['message'=>'Product created successfully'], 201);
+    public function store(StoreProductRequest $request)
+    {
+        $product = $this->productService->createProduct($request->validated());
+        return new ProductResource($product);
     }
-    public function show($id){
-        return $this->productService->getProductById($id);
-    }
-    public function update(Request $request, $id){
+    
+    public function show($id)
+    {
         $product = $this->productService->getProductById($id);
-        $product->update($request->all());
-        return $product;
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+        return new ProductResource($product);
     }
-    public function destroy($id){
-        $this->productService->deleteProduct($id);
+    
+    public function update(UpdateProductRequest $request, $id)
+    {
+        $product = $this->productService->getProductById($id);
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
         
+        $product = $this->productService->updateProduct($id, $request->validated());
+        return new ProductResource($product);
+    }
+    
+    public function destroy($id)
+    {
+        $product = $this->productService->getProductById($id);
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+        
+        $this->productService->deleteProduct($id);
+        return response()->json(['message' => 'Product deleted successfully'], 200);
     }
 }

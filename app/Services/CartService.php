@@ -11,21 +11,11 @@ class CartService
 
     public function getCart()
     {
-        $cartItems = Cart::where('carts.user_id', $this->userId)
-            ->join('products', 'carts.product_id', '=', 'products.id')
-            ->select('carts.product_id', 'carts.quantity', 'products.name', 'products.price')
+        $carts = Cart::where('user_id', $this->userId)
+            ->with('product')
             ->get();
         
-        $cart = [];
-        foreach ($cartItems as $item) {
-            $cart[$item->product_id] = [
-                'name' => $item->name,
-                'price' => (float)$item->price,
-                'quantity' => (int)$item->quantity
-            ];
-        }
-        
-        return $cart;
+        return $carts;
     }
 
     public function addToCart($id)
